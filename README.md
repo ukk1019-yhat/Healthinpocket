@@ -1,17 +1,33 @@
-# RetinaScreen AI
+# Health in Pocket
 
-AI-powered diabetic retinopathy detection from retinal fundus images.
+AI-powered multi-disease screening platform — starting with diabetic retinopathy.
+
+> **Can AI deliver a doctor to every pocket in the world?**
+>
+> That question defines the next decade of healthcare. This project is a working answer.
+
+The world has ~1 billion people with diabetes, ~10 million undiagnosed TB cases, and ~7 million annual heart disease deaths — yet most lack access to a specialist. A phone + AI can screen them all.
+
+**Current disease coverage:**
+- ✅ **Diabetic Retinopathy** — from retinal fundus images (live)
+- 🔄 **TB Detection** — from cough audio (planned)
+- 🔄 **Chest X-Ray Analysis** — pneumonia/TB (planned)
+- 🔄 **Cardiac Risk** — from ECG signals (planned)
+- 🔄 **Skin Lesions** — classification (planned)
 
 A complete system with three layers:
 1. **Training Pipeline** — config-driven ML training with augmentation, metrics, and experiment tracking
 2. **Inference API** — FastAPI server serving ONNX models via REST endpoints
-3. **Deployment** — Docker-ready with CPU/GPU support
+3. **Deployment** — Vercel + Docker-ready with CPU/GPU support
 
 ---
 
 ## Table of Contents
 
+- [Why This Matters — The Diagnostics Gap](#why-this-matters--the-diagnostics-gap)
 - [Architecture Overview](#architecture-overview)
+- [Multi-Service Vision](#multi-service-vision)
+- [Roadmap](#roadmap)
 - [Project Structure](#project-structure)
 - [Requirements](#requirements)
 - [Installation](#installation)
@@ -21,8 +37,19 @@ A complete system with three layers:
 - [Diabetic Retinopathy Grading](#diabetic-retinopathy-grading)
 - [Configuration Reference](#configuration-reference)
 - [API Endpoints](#api-endpoints)
+- [Vercel Deployment](#vercel-deployment)
 - [Docker Deployment](#docker-deployment)
 - [FAQ / Troubleshooting](#faq--troubleshooting)
+
+---
+
+## Why This Matters — The Diagnostics Gap
+
+**The problem:** Over half the world's population lacks access to basic diagnostics. A diabetic patient in rural India, a TB suspect in sub-Saharan Africa, or a cardiac patient in Southeast Asia may never see a specialist in their lifetime.
+
+**The solution:** AI models running on a smartphone. No expensive hardware. No specialist required. Just a photo, a cough recording, or a 30-second ECG.
+
+**The platform** makes this practical by bringing multiple screening tests into one place. A community health worker carries one phone, uploads one image, gets one answer — instantly.
 
 ---
 
@@ -43,11 +70,15 @@ A complete system with three layers:
                                                    │
                                                    ▼
                     ┌──────────────────────────────────────────┐
-                    │           FastAPI Inference Server       │
+                    │    Multi-Service Inference Platform      │
                     │                                          │
-  User Upload ───► │ /api/v1/diagnose ─► Preprocess ─► ONNX   │
-                    │                              │           │
-                    │                   Softmax ─► Response    │
+  ┌────────────┐    │  ┌────────────────────────────────────┐  │
+  │  Frontend  │────┼─►│  /api/v1/diagnose  (retinopathy)   │  │
+  │  Web App   │    │  │  /api/v1/tb        (cough audio)   │  │
+  │   (React)  │    │  │  /api/v1/chest-xr  (X-ray)         │──┼──► ONNX Runtime
+  └────────────┘    │  │  /api/v1/ecg       (cardiac)       │  │
+                    │  │  /api/v1/skin      (lesions)       │  │
+                    │  └────────────────────────────────────┘  │
                     └──────────────────────────────────────────┘
 ```
 
@@ -55,7 +86,49 @@ The system works in two independent phases:
 
 **Phase 1: Training** — Download or point to a dataset, validate and split it, train an EfficientNet model with augmentations, export to ONNX.
 
-**Phase 2: Inference** — Load the ONNX model into a FastAPI server, accept retinal images via HTTP POST, return diagnosis with confidence scores.
+**Phase 2: Multi-Service Inference** — Load multiple ONNX models into a FastAPI server, accept images/audio/ECG via HTTP POST, return diagnosis with confidence scores.
+
+---
+
+## Multi-Service Vision
+
+The platform is designed as a **multi-service architecture** on Vercel:
+
+```
+healthinpocket.vercel.app
+│
+├── /                     → Frontend web app (patient-facing)
+│     Upload any test, get instant screening
+│
+├── /_/backend            → Diabetic retinopathy API (current)
+│
+├── /_/tb                 → TB detection from cough audio
+│
+├── /_/chest-xr           → Chest X-ray analysis
+│
+├── /_/ecg                → Cardiac risk from ECG
+│
+└── /_/skin               → Skin lesion classification
+```
+
+**What this enables:**
+- **One interface** — A community health worker opens one page, selects the test type, uploads, gets results
+- **Independent services** — Each disease model is developed, trained, and deployed independently
+- **Scale gradually** — Start with retinopathy, add TB next, then others
+
+---
+
+## Roadmap
+
+| Phase | Milestone | Status |
+|-------|-----------|--------|
+| 1 | Diabetic retinopathy detection (current) | ✅ Live |
+| 2 | Frontend web app — unified upload interface | 🔄 Next |
+| 3 | TB detection from cough audio | 📋 Planned |
+| 4 | Chest X-ray (pneumonia/TB) | 📋 Planned |
+| 5 | Cardiac risk from ECG | 📋 Planned |
+| 6 | Skin lesion classification | 📋 Planned |
+| 7 | Offline mobile app (PWA / TFLite) | 📋 Future |
 
 ---
 
@@ -63,6 +136,8 @@ The system works in two independent phases:
 
 ```
 Health care/
+│
+├── frontend/                       # (planned) Patient-facing web app
 │
 ├── backend/                        # Inference API (FastAPI + ONNX Runtime)
 │   ├── app/
@@ -96,6 +171,15 @@ Health care/
 │   ├── export_model.py             # PyTorch checkpoint → ONNX export
 │   └── requirements.txt            # Pipeline Python dependencies
 │
+├── services/                       # (planned) Additional disease services
+│   ├── tb/                         # TB detection from cough audio
+│   ├── chest-xr/                   # Chest X-ray analysis
+│   ├── ecg/                        # Cardiac risk from ECG
+│   └── skin/                       # Skin lesion classification
+│
+├── api/                            # Vercel serverless entry
+│   └── index.py                    # Wraps and exports the FastAPI app
+│
 ├── data/                           # Data directory
 │   ├── images/                     # Place retinal fundus images here
 │   ├── models/                     # ONNX model files go here
@@ -112,9 +196,9 @@ Health care/
 ├── tests/
 │   └── test_api.py                 # API integration tests
 │
+├── vercel.json                     # Vercel deployment configuration
 ├── setup_dev.py                    # One-time: generates dummy ONNX + test image
 ├── docker-compose.yml              # Docker Compose for API deployment
-├── requirements.txt                # Combined dependencies (pipeline + backend)
 └── .gitignore
 ```
 
@@ -256,9 +340,9 @@ Edit `pipeline/config/config.yaml`:
 
 ```yaml
 data:
-  source: "local"          # ← change from "kaggle" to "local"
-  local_path: "data/images" # ← your image directory
-  label_file: "data/train.csv"  # ← your CSV with image,diagnosis columns
+  source: "local"          # change from "kaggle" to "local"
+  local_path: "data/images" # your image directory
+  label_file: "data/train.csv"  # your CSV with image,diagnosis columns
 ```
 
 Then run:
@@ -344,7 +428,7 @@ augmentation:
     rotation_limit: 30                # Degrees
     brightness_contrast: [0.8, 1.2]   # [brightness_lower, contrast_upper]
     hue_saturation: [0.0, 0.1]        # [hue_shift, sat_shift]
-    scale_limit: 0.15                 # Random scale ±15%
+    scale_limit: 0.15                 # Random scale +-15%
   eval:
     horizontal_flip: false
 
@@ -392,14 +476,14 @@ python -m uvicorn backend.app.main:app --reload --host 0.0.0.0 --port 8000
 python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 
-The server automatically loads the ONNX model from `data/models/model.onnx` on startup.
+The server automatically loads the ONNX model from `data/models/model.onnx` on startup. If the model file doesn't exist, it generates a dummy one automatically.
 
 ### Model Requirements for the API
 
 The API expects an ONNX model at `data/models/model.onnx` with:
 - **Input**: `"input"`, shape `(batch, 3, height, width)`, dtype `float32`
 - **Output**: `"output"`, shape `(batch, 5)`, dtype `float32`
-- Image size: 512×512 pixels (configurable)
+- Image size: 512x512 pixels (configurable)
 
 The pipeline's export script (`pipeline/export_model.py`) produces a compatible model.
 
@@ -506,14 +590,53 @@ for p in result['predictions']:
 When a user uploads an image, the API performs these steps:
 
 1. **Validate** — checks file extension (`.jpg`, `.jpeg`, `.png`, `.tiff`, `.tif`) and file size (max 10 MB)
-2. **Load** — reads the image with OpenCV, converts BGR → RGB
-3. **Resize** — resizes to 512×512 pixels using `INTER_AREA` interpolation
+2. **Load** — reads the image with OpenCV, converts BGR to RGB
+3. **Resize** — resizes to 512x512 pixels using `INTER_AREA` interpolation
 4. **Normalize** — scale pixel values to [0,1], then apply ImageNet mean/std normalization (mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-5. **Transpose** — HWC → CHW format
+5. **Transpose** — HWC to CHW format
 6. **Add batch dimension** — shape becomes `(1, 3, 512, 512)`
 7. **Run ONNX inference** — feeds the tensor through the model
 8. **Softmax** — converts logits to probabilities
 9. **Format response** — sorts predictions by confidence, returns primary diagnosis
+
+---
+
+## Vercel Deployment
+
+The project is deployed on Vercel as a serverless function.
+
+**Production URL:** https://healthinpocket.vercel.app
+
+### How it works
+
+- `api/index.py` wraps the FastAPI app for Vercel's Python runtime
+- `vercel.json` configures rewrites to route all traffic to the serverless function
+- On cold start, if no ONNX model is found, a dummy model auto-generates in `/tmp/`
+- Every push to `main` on GitHub triggers an automatic redeploy
+
+### Deploy manually
+
+```bash
+vercel --prod
+```
+
+### Planned multi-service config
+
+```json
+{
+  "experimentalServices": {
+    "frontend": {
+      "routePrefix": "/"
+    },
+    "backend": {
+      "root": "backend",
+      "routePrefix": "/_/backend"
+    }
+  }
+}
+```
+
+This will split the deployment into a frontend web app at `/` and the API at `/_/backend/`, with additional disease services added under their own prefixes.
 
 ---
 
@@ -563,6 +686,8 @@ You need a model at `data/models/model.onnx`. Either:
 - Run `python setup_dev.py` for a dummy test model
 - Run `python pipeline/export_model.py` after training
 - Download a pretrained model and place it there
+
+On Vercel, a dummy model auto-generates at cold start.
 
 ### "CUDAExecutionProvider is not available"
 
@@ -620,3 +745,14 @@ The API auto-detects CUDA. For the Docker deployment, use NVIDIA's container too
 ```bash
 pytest tests/
 ```
+
+### How does this close the diagnostics gap?
+
+Every service added to this platform targets a specific gap:
+- **Diabetic retinopathy**: 1 in 3 diabetics will develop DR, yet annual screening rates are <20% in low-resource settings
+- **TB detection**: 40% of TB cases go undiagnosed globally; cough audio AI can screen entire communities
+- **Chest X-ray**: Pneumonia kills 700k children annually; AI can prioritize critical cases where radiologists are scarce
+- **ECG**: 80% of cardiovascular deaths occur in low/middle-income countries; 30-second smartphone ECGs can flag risk
+- **Skin lesions**: Melanoma survival is >99% if caught early, but dermatologist access is a luxury
+
+One phone. Multiple tests. Universal access.
