@@ -1,0 +1,12 @@
+services:
+  retinopathy-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - MODEL_PATH=/app/data/models/model.onnx
+    restart: unless-stopped

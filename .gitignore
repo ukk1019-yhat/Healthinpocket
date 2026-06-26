@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.env
+*.onnx
+*.pt
+*.pth
+data/images/*
+data/models/*
+!data/models/.gitkeep
+!data/images/.gitkeep
+node_modules/
+.venv/
+venv/
