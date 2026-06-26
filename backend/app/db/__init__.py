@@ -1,16 +1,19 @@
 import os
-from supabase import create_client, Client
 
 _url = os.environ.get("SUPABASE_URL", "")
 _key = os.environ.get("SUPABASE_ANON_KEY", "")
 
-_client: Client | None = None
+_client = None
 
 
-def get_client() -> Client | None:
+def get_client():
     global _client
     if _client is None and _url and _key:
-        _client = create_client(_url, _key)
+        try:
+            from supabase import create_client
+            _client = create_client(_url, _key)
+        except ImportError:
+            pass
     return _client
 
 
