@@ -1,0 +1,5 @@
+outputs/
+data/images/
+data/models/
+*.pt
+*.pth

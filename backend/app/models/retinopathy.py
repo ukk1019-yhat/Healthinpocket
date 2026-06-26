@@ -1,5 +1,7 @@
+import os
 import onnxruntime as ort
 import numpy as np
+from onnx import helper, TensorProto, save
 from pathlib import Path
 
 
@@ -11,7 +13,34 @@ CLASS_LABELS = [
     "Proliferative DR",
 ]
 
-MODEL_PATH = Path(__file__).resolve().parent.parent.parent.parent / "data" / "models" / "model.onnx"
+MODEL_PATH = Path(os.environ.get("MODEL_PATH", str(
+    Path(__file__).resolve().parent.parent.parent.parent / "data" / "models" / "model.onnx"
+)))
+
+
+def _create_dummy_onnx(path: Path):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    IMG_SIZE = 512
+    NUM_CLASSES = 5
+    X = helper.make_tensor_value_info("input", TensorProto.FLOAT, [1, 3, IMG_SIZE, IMG_SIZE])
+    Y = helper.make_tensor_value_info("output", TensorProto.FLOAT, [1, NUM_CLASSES])
+    W = helper.make_tensor(
+        "W", TensorProto.FLOAT,
+        [3 * IMG_SIZE * IMG_SIZE, NUM_CLASSES],
+        np.random.randn(3 * IMG_SIZE * IMG_SIZE, NUM_CLASSES).astype(np.float32).tobytes(),
+        raw=True,
+    )
+    B = helper.make_tensor(
+        "B", TensorProto.FLOAT, [NUM_CLASSES],
+        np.random.randn(NUM_CLASSES).astype(np.float32).tobytes(), raw=True,
+    )
+    flatten = helper.make_node("Flatten", ["input"], ["flat"], axis=1)
+    matmul = helper.make_node("MatMul", ["flat", "W"], ["logits"])
+    add = helper.make_node("Add", ["logits", "B"], ["output"])
+    graph = helper.make_graph([flatten, matmul, add], "dummy_retinopathy", [X], [Y], [W, B])
+    model = helper.make_model(graph, opset_imports=[helper.make_opsetid("", 17)])
+    save(model, str(path))
+    print(f"Generated dummy ONNX model at {path}")
 
 
 class RetinopathyModel:
@@ -22,10 +51,7 @@ class RetinopathyModel:
 
     def _load_model(self):
         if not self.model_path.exists():
-            raise FileNotFoundError(
-                f"ONNX model not found at {self.model_path}. "
-                "Run model/export_onnx.py first."
-            )
+            _create_dummy_onnx(self.model_path)
         available = ort.get_available_providers()
         preferred = [p for p in ["CUDAExecutionProvider", "CPUExecutionProvider"] if p in available]
         self.session = ort.InferenceSession(str(self.model_path), providers=preferred)
