@@ -8,9 +8,9 @@ router = APIRouter(prefix="/api/v1/history", tags=["history"])
 async def get_history(authorization: str = Header(None)):
     client = get_client()
     if not client:
-        raise HTTPException(statusCode=503, detail="Supabase not configured")
+        raise HTTPException(status_code=503, detail="Supabase not configured")
     if not authorization:
-        raise HTTPException(statusCode=401, detail="Missing authorization header")
+        raise HTTPException(status_code=401, detail="Missing authorization header")
     token = authorization.replace("Bearer ", "")
     try:
         client.auth.set_session(token, "")
@@ -23,4 +23,4 @@ async def get_history(authorization: str = Header(None)):
         )
         return {"screenings": resp.data}
     except Exception as e:
-        raise HTTPException(statusCode=401, detail=str(e))
+        raise HTTPException(status_code=401, detail=str(e))
