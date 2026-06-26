@@ -86,6 +86,32 @@ loginLink?.addEventListener("click", openAuth);
 modalClose?.addEventListener("click", () => authModal.classList.add("hidden"));
 authModal?.addEventListener("click", (e) => { if (e.target === authModal) authModal.classList.add("hidden"); });
 
+// Google OAuth
+document.getElementById("googleSignIn")?.addEventListener("click", async () => {
+  try {
+    const resp = await fetch(`${API_BASE}/auth/oauth/google`);
+    if (!resp.ok) { const err = await resp.json(); throw new Error(err.detail || "OAuth failed"); }
+    const data = await resp.json();
+    window.open(data.url, "google-oauth", "width=600,height=700");
+  } catch (err) {
+    authError.textContent = err.message;
+    authError.classList.remove("hidden");
+  }
+});
+
+// Listen for OAuth callback from popup
+window.addEventListener("message", (e) => {
+  if (e.data?.type === "oauth") {
+    accessToken = e.data.access_token;
+    userEmail = e.data.email || "Google user";
+    localStorage.setItem("hip_token", accessToken);
+    localStorage.setItem("hip_email", userEmail);
+    authModal.classList.add("hidden");
+    updateAuthUI();
+    loadHistory();
+  }
+});
+
 authToggleLink?.addEventListener("click", (e) => {
   e.preventDefault();
   isSignUp = !isSignUp;

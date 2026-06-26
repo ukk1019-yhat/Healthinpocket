@@ -1,7 +1,7 @@
 import os
 
-_url = os.environ.get("SUPABASE_URL", "")
-_key = os.environ.get("SUPABASE_ANON_KEY", "")
+_url = os.environ.get("SUPABASE_URL", "").strip()
+_key = os.environ.get("SUPABASE_ANON_KEY", "").strip()
 
 _client = None
 

@@ -455,6 +455,43 @@ section h2 {
 }
 .auth-toggle a { color: var(--primary); text-decoration: none; font-weight: 600; }
 
+/* OAuth divider */
+.oauth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  color: var(--gray-500);
+  font-size: 0.8125rem;
+}
+.oauth-divider::before,
+.oauth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--gray-200);
+}
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--gray-300);
+  border-radius: 8px;
+  background: white;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-google:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-500);
+}
+
 /* History */
 .history { margin-top: 40px; }
 .history-item {
