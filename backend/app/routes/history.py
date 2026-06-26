@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Header
-from app.db import get_client
+from backend.app.db import get_client
 
 router = APIRouter(prefix="/api/v1/history", tags=["history"])
 
