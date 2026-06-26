@@ -1,0 +1,5 @@
+# For development only (installs both model and backend deps)
+-r model/requirements.txt
+-r backend/requirements.txt
+pytest>=8.0.0
+httpx>=0.26.0

@@ -1,4 +1,5 @@
 import os
+import sys
 import onnxruntime as ort
 import numpy as np
 from onnx import helper, TensorProto, save
@@ -13,9 +14,11 @@ CLASS_LABELS = [
     "Proliferative DR",
 ]
 
-MODEL_PATH = Path(os.environ.get("MODEL_PATH", str(
-    Path(__file__).resolve().parent.parent.parent.parent / "data" / "models" / "model.onnx"
-)))
+_TMP_MODEL_PATH = Path("/tmp/model.onnx") if sys.platform != "win32" else Path(os.environ.get("TEMP", "C:\\Windows\\Temp")) / "model.onnx"
+
+_DEFAULT_PATH = Path(__file__).resolve().parent.parent.parent.parent / "data" / "models" / "model.onnx"
+
+MODEL_PATH = Path(os.environ.get("MODEL_PATH", str(_DEFAULT_PATH)))
 
 
 def _create_dummy_onnx(path: Path):
@@ -45,13 +48,17 @@ def _create_dummy_onnx(path: Path):
 
 class RetinopathyModel:
     def __init__(self, model_path: str | Path = MODEL_PATH):
-        self.model_path = model_path
+        self.model_path = Path(model_path)
         self.session = None
         self._load_model()
 
     def _load_model(self):
         if not self.model_path.exists():
-            _create_dummy_onnx(self.model_path)
+            try:
+                _create_dummy_onnx(self.model_path)
+            except OSError:
+                self.model_path = _TMP_MODEL_PATH
+                _create_dummy_onnx(self.model_path)
         available = ort.get_available_providers()
         preferred = [p for p in ["CUDAExecutionProvider", "CPUExecutionProvider"] if p in available]
         self.session = ort.InferenceSession(str(self.model_path), providers=preferred)

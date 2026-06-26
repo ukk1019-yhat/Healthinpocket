@@ -1,5 +1,8 @@
-# For development only (installs both model and backend deps)
--r model/requirements.txt
--r backend/requirements.txt
-pytest>=8.0.0
-httpx>=0.26.0
+fastapi>=0.109.0
+python-multipart>=0.0.6
+onnx>=1.14.0
+onnxruntime>=1.15.0
+numpy>=1.24.0
+opencv-python-headless>=4.8.0
+Pillow>=10.0.0
+pydantic>=2.5.0

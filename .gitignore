@@ -11,3 +11,5 @@ data/models/*
 node_modules/
 .venv/
 venv/
+
+.vercel

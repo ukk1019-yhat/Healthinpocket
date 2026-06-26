@@ -1,14 +1,5 @@
 {
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 30,
-      "memory": 1024
-    }
-  },
   "rewrites": [
-    { "source": "/(.*)", "dest": "api/index.py" }
-  ],
-  "env": {
-    "MODEL_PATH": "/tmp/model.onnx"
-  }
+    { "source": "/(.*)", "destination": "/api/index.py" }
+  ]
 }
