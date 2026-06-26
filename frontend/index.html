@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Health in Pocket — AI Screening</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <span class="logo">Health in Pocket</span>
+      <span class="tagline">AI screening for everyone</span>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container">
+      <h1>Can AI deliver a doctor to every pocket in the world?</h1>
+      <p>Upload a medical image. Get an instant AI screening. No specialist needed.</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="tests">
+      <h2>Choose a screening test</h2>
+      <div class="test-grid" id="testGrid">
+        <div class="test-card active" data-test="retinopathy">
+          <div class="test-icon">👁️</div>
+          <h3>Eye (Retina)</h3>
+          <p>Diabetic retinopathy detection</p>
+          <span class="badge active-badge">Active</span>
+        </div>
+        <div class="test-card disabled" data-test="tb">
+          <div class="test-icon">🗣️</div>
+          <h3>Cough (TB)</h3>
+          <p>TB detection from cough audio</p>
+          <span class="badge soon-badge">Coming Soon</span>
+        </div>
+        <div class="test-card disabled" data-test="chest">
+          <div class="test-icon">🫁</div>
+          <h3>Chest X-Ray</h3>
+          <p>Pneumonia &amp; TB detection</p>
+          <span class="badge soon-badge">Coming Soon</span>
+        </div>
+        <div class="test-card disabled" data-test="ecg">
+          <div class="test-icon">❤️</div>
+          <h3>ECG (Cardiac)</h3>
+          <p>Cardiac risk flagging</p>
+          <span class="badge soon-badge">Coming Soon</span>
+        </div>
+        <div class="test-card disabled" data-test="skin">
+          <div class="test-icon">🔬</div>
+          <h3>Skin Lesions</h3>
+          <p>Lesion classification</p>
+          <span class="badge soon-badge">Coming Soon</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="upload-section" id="uploadSection">
+      <h2>Upload your image</h2>
+      <div class="upload-zone" id="uploadZone">
+        <div class="upload-content" id="uploadContent">
+          <div class="upload-icon">📤</div>
+          <p>Drag &amp; drop a retinal image here, or <strong>click to browse</strong></p>
+          <p class="upload-hint">JPG, PNG, or TIFF &middot; Max 10 MB</p>
+        </div>
+        <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.tiff,.tif" hidden>
+      </div>
+      <div class="preview hidden" id="previewArea">
+        <img id="previewImg" alt="Preview">
+        <button class="btn btn-secondary" id="changeBtn">Change</button>
+      </div>
+      <button class="btn btn-primary hidden" id="diagnoseBtn">Run Screening</button>
+    </section>
+
+    <section class="results hidden" id="resultsSection">
+      <h2>Screening Result</h2>
+      <div class="result-card" id="resultCard">
+        <div class="result-header">
+          <span class="result-label" id="resultLabel">No DR</span>
+          <span class="result-confidence" id="resultConfidence">99.2%</span>
+        </div>
+        <div class="result-details">
+          <div class="result-meta">
+            <span id="resultFilename"></span>
+            <span id="resultTime"></span>
+          </div>
+        </div>
+      </div>
+      <div class="all-predictions" id="allPredictions">
+        <h3>All probabilities</h3>
+        <div class="prob-bars" id="probBars"></div>
+      </div>
+      <div class="disclaimer">
+        <p><strong>Disclaimer:</strong> This is an AI screening tool, not a clinical diagnosis. Always consult a qualified healthcare professional.</p>
+      </div>
+    </section>
+
+    <section class="processing hidden" id="processingSection">
+      <div class="spinner"></div>
+      <p>Analyzing your image...</p>
+      <div class="processing-steps">
+        <div class="step" id="step1">Validating image</div>
+        <div class="step" id="step2">Preprocessing</div>
+        <div class="step" id="step3">Running AI model</div>
+        <div class="step" id="step4">Generating report</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <p>Built for the MATH Roadshow &middot; Hyderabad 2026</p>
+      <p>Closing the diagnostics gap &mdash; one pocket at a time</p>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
