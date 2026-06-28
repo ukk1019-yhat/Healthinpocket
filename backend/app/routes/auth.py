@@ -1,4 +1,5 @@
 import os
+from urllib.parse import quote
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
@@ -58,7 +59,7 @@ async def oauth_login(provider: str, request: Request):
         auth_url = (
             f"{supabase_url}/auth/v1/authorize"
             f"?provider={provider}"
-            f"&redirect_to={callback}"
+            f"&redirect_to={quote(callback)}"
         )
         if request.base_url.scheme == "https":
             auth_url += "&response_type=token"
