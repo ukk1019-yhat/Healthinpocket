@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from backend.app.routes.diagnose import router as diagnose_router
+from backend.app.routes.explain import router as explain_router
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend"
 
@@ -22,6 +23,7 @@ app.add_middleware(
 )
 
 app.include_router(diagnose_router)
+app.include_router(explain_router)
 
 if FRONTEND_DIR.exists():
     app.mount("/css", StaticFiles(directory=str(FRONTEND_DIR / "css")), name="css")

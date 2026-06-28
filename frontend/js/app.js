@@ -111,4 +111,31 @@ function showResults(data) {
 
   resultsSection.classList.remove("hidden");
   resultsSection.scrollIntoView({ behavior: "smooth" });
+
+  fetchExplanation(data.predictions, data.primary_diagnosis);
+}
+
+async function fetchExplanation(predictions, primaryDiagnosis) {
+  const section = document.getElementById("aiExplanation");
+  const loading = document.getElementById("explanationLoading");
+  const content = document.getElementById("explanationContent");
+  section.classList.remove("hidden");
+  loading.classList.remove("hidden");
+  content.classList.add("hidden");
+  content.innerHTML = "";
+
+  try {
+    const resp = await fetch(`${API_BASE}/explain`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ predictions, primary_diagnosis: primaryDiagnosis }),
+    });
+    if (!resp.ok) throw new Error("AI explanation unavailable");
+    const data = await resp.json();
+    content.innerHTML = data.explanation.replace(/\n/g, "<br>");
+    loading.classList.add("hidden");
+    content.classList.remove("hidden");
+  } catch {
+    loading.innerHTML = "<span style='color:var(--gray-500)'>AI explanation unavailable right now</span>";
+  }
 }
