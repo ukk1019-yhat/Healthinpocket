@@ -132,7 +132,7 @@ async function fetchExplanation(predictions, primaryDiagnosis) {
     });
     if (!resp.ok) throw new Error("AI explanation unavailable");
     const data = await resp.json();
-    content.innerHTML = data.explanation.replace(/\n/g, "<br>");
+    content.innerHTML = data.explanation.replace(/\*\*/g, "").replace(/\*/g, "").replace(/\n/g, "<br>");
     loading.classList.add("hidden");
     content.classList.remove("hidden");
   } catch {

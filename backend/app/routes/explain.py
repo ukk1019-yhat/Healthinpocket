@@ -52,9 +52,9 @@ async def explain(request: ExplainRequest):
 **Class Reference**:
 {class_ref}
 
-Please provide a clear, compassionate explanation for the patient in plain English using this exact structure with bold section headings:
+Please provide a clear, compassionate explanation for the patient in plain English using this exact structure. Use the section names as plain text (no bold, no markdown symbols like ** or *):
 
-**Overview**
+Overview
 What this result means in simple terms.
 
 **Symptoms**
@@ -84,7 +84,7 @@ What to expect going forward.
 **Related Diseases**
 Other conditions associated with diabetic retinopathy.
 
-Keep the tone warm, educational, and reassuring. Use bold for each heading (e.g., **Overview**). Limit each section to 2-3 sentences unless more detail is essential."""
+Keep the tone warm, educational, and reassuring. Do NOT use any markdown symbols like ** * or # anywhere in the output. Use plain text for section names and content. Limit each section to 2-3 sentences unless more detail is essential."""
 
     try:
         async with httpx.AsyncClient(timeout=60.0) as client:
