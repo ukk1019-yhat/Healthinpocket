@@ -2,10 +2,8 @@
   "experimentalServices": {
     "api": {
       "root": ".",
-      "entrypoint": "api/index.py"
+      "entrypoint": "api/index.py",
+      "routePrefix": "/"
     }
-  },
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/api/index.py" }
-  ]
+  }
 }
