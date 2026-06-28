@@ -54,7 +54,7 @@ async def oauth_login(provider: str, request: Request):
     try:
         redirect_to = str(request.url_for("oauth_callback"))
         resp = client.auth.sign_in_with_oauth(
-            {"provider": provider, "options": {"redirect_to": redirect_to}}
+            {"provider": provider, "options": {"redirect_to": redirect_to, "flow_type": "implicit"}}
         )
         return {"url": resp.url}
     except Exception as e:
@@ -67,12 +67,12 @@ OAUTH_CALLBACK_HTML = """<!DOCTYPE html>
 <body>
 <script>
 try {
-  var hash = window.location.hash.substring(1);
-  var params = new URLSearchParams(hash);
-  var token = params.get("access_token");
-  var email = params.get("email") || "";
-  if (token) {
-    window.opener.postMessage({ type: "oauth", access_token: token, email: email }, "*");
+  var q = new URLSearchParams(window.location.search);
+  var h = new URLSearchParams(window.location.hash.substring(1));
+  var token = q.get("code") || h.get("access_token");
+  var email = h.get("email") || "";
+  if (token && window.opener) {
+    window.opener.postMessage({ type: "oauth", token: token, email: email }, "*");
   }
 } catch(e) {}
 window.close();
@@ -84,6 +84,21 @@ window.close();
 @router.get("/callback", response_class=HTMLResponse, name="oauth_callback")
 async def oauth_callback():
     return OAUTH_CALLBACK_HTML
+
+
+@router.post("/exchange")
+async def exchange_code(code: str = ""):
+    client = get_client()
+    if not client or not code:
+        raise HTTPException(status_code=400, detail="Missing code")
+    try:
+        resp = client.auth.exchange_code_for_session({"auth_code": code})
+        return {
+            "access_token": resp.session.access_token if resp.session else None,
+            "user": resp.user.email if resp.user else None,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @router.get("/me")

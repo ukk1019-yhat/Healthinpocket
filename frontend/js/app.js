@@ -100,16 +100,36 @@ document.getElementById("googleSignIn")?.addEventListener("click", async () => {
 });
 
 // Listen for OAuth callback from popup
-window.addEventListener("message", (e) => {
-  if (e.data?.type === "oauth") {
-    accessToken = e.data.access_token;
-    userEmail = e.data.email || "Google user";
-    localStorage.setItem("hip_token", accessToken);
-    localStorage.setItem("hip_email", userEmail);
-    authModal.classList.add("hidden");
-    updateAuthUI();
-    loadHistory();
+window.addEventListener("message", async (e) => {
+  if (e.data?.type !== "oauth") return;
+  const { token, email } = e.data;
+  if (!token) return;
+  if (token.length > 200) {
+    // Implicit flow — token is access_token
+    accessToken = token;
+    userEmail = email || "Google user";
+  } else {
+    // PKCE flow — token is code, exchange it
+    try {
+      const resp = await fetch(`${API_BASE}/auth/exchange`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: token }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail);
+      accessToken = data.access_token;
+      userEmail = data.user || "Google user";
+    } catch (err) {
+      console.error("OAuth exchange failed", err);
+      return;
+    }
   }
+  localStorage.setItem("hip_token", accessToken);
+  localStorage.setItem("hip_email", userEmail);
+  authModal.classList.add("hidden");
+  updateAuthUI();
+  loadHistory();
 });
 
 authToggleLink?.addEventListener("click", (e) => {
