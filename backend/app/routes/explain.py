@@ -52,13 +52,39 @@ async def explain(request: ExplainRequest):
 **Class Reference**:
 {class_ref}
 
-Please provide a clear, compassionate explanation for the patient in plain English. Include:
-1. What this result means in simple terms for a non-medical person
-2. What visible signs in the retina typically correspond to this stage
-3. Recommended next steps — always include consulting an eye specialist
-4. Any lifestyle or diabetes management suggestions
+Please provide a clear, compassionate explanation for the patient in plain English using this exact structure with bold section headings:
 
-Keep the tone warm, educational, and reassuring. Format in plain paragraphs (no markdown headings)."""
+**Overview**
+What this result means in simple terms.
+
+**Symptoms**
+What symptoms a patient might or might not experience at this stage.
+
+**Causes**
+What causes this stage of diabetic retinopathy.
+
+**Risk Factors**
+Common risk factors that contribute to this condition.
+
+**Diagnosis**
+How this condition is diagnosed (including this AI screening).
+
+**Treatment Options**
+Available treatment approaches for this stage.
+
+**Prevention**
+Steps to prevent progression or maintain eye health.
+
+**Recovery Timeline**
+What to expect going forward.
+
+**Frequently Asked Questions**
+1-2 common questions patients have about this finding.
+
+**Related Diseases**
+Other conditions associated with diabetic retinopathy.
+
+Keep the tone warm, educational, and reassuring. Use bold for each heading (e.g., **Overview**). Limit each section to 2-3 sentences unless more detail is essential."""
 
     try:
         async with httpx.AsyncClient(timeout=60.0) as client:
