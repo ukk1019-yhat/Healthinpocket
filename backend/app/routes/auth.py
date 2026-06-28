@@ -54,7 +54,7 @@ async def oauth_login(provider: str, request: Request):
     try:
         redirect_to = str(request.url_for("oauth_callback"))
         resp = client.auth.sign_in_with_oauth(
-            {"provider": provider, "options": {"redirect_to": redirect_to, "flow_type": "implicit"}}
+            {"provider": provider, "options": {"redirect_to": redirect_to}}
         )
         return {"url": resp.url}
     except Exception as e:
@@ -73,13 +73,13 @@ try {
   var email = h.get("email") || "";
   if (token && window.opener) {
     window.opener.postMessage({ type: "oauth", token: token, email: email }, "*");
+    window.close();
   }
+  document.body.innerHTML = "<p>Signed in! You may close this window.</p>";
 } catch(e) {}
-window.close();
 </script>
 </body>
 </html>"""
-
 
 @router.get("/callback", response_class=HTMLResponse, name="oauth_callback")
 async def oauth_callback():
