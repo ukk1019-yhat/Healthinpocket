@@ -47,6 +47,9 @@ async def diagnose(file: UploadFile = File(...)):
     )
 
     return response
+
+
+@router.get("/health")
 async def health():
     return {
         "status": "ok",
