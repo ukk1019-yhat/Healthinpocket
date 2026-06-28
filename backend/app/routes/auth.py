@@ -59,7 +59,7 @@ async def oauth_login(provider: str, request: Request):
         auth_url = (
             f"{supabase_url}/auth/v1/authorize"
             f"?provider={provider}"
-            f"&redirect_to={quote(callback)}"
+            f"&redirect_to={quote(callback, safe='')}"
         )
         if request.base_url.scheme == "https":
             auth_url += "&response_type=token"
