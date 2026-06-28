@@ -52,11 +52,17 @@ async def oauth_login(provider: str, request: Request):
     if not client:
         raise HTTPException(status_code=503, detail="Supabase not configured")
     try:
-        redirect_to = str(request.url_for("oauth_callback"))
-        resp = client.auth.sign_in_with_oauth(
-            {"provider": provider, "options": {"redirect_to": redirect_to}}
+        callback = str(request.url_for("oauth_callback"))
+        supabase_url = os.environ.get("SUPABASE_URL", "").strip().rstrip("/")
+        # Manually build implicit grant URL (access_token in hash, not PKCE code)
+        auth_url = (
+            f"{supabase_url}/auth/v1/authorize"
+            f"?provider={provider}"
+            f"&redirect_to={callback}"
         )
-        return {"url": resp.url}
+        if request.base_url.scheme == "https":
+            auth_url += "&response_type=token"
+        return {"url": auth_url}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -67,16 +73,15 @@ OAUTH_CALLBACK_HTML = """<!DOCTYPE html>
 <body>
 <script>
 try {
-  var q = new URLSearchParams(window.location.search);
   var h = new URLSearchParams(window.location.hash.substring(1));
-  var token = q.get("code") || h.get("access_token");
+  var token = h.get("access_token");
   var email = h.get("email") || "";
   if (token && window.opener) {
     window.opener.postMessage({ type: "oauth", token: token, email: email }, "*");
-    window.close();
   }
-  document.body.innerHTML = "<p>Signed in! You may close this window.</p>";
 } catch(e) {}
+window.close();
+document.body.innerHTML = "<p>Signed in! You may close this window.</p>";
 </script>
 </body>
 </html>"""
