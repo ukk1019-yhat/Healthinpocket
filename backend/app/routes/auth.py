@@ -52,8 +52,7 @@ async def oauth_login(provider: str, request: Request):
     if not client:
         raise HTTPException(status_code=503, detail="Supabase not configured")
     try:
-        base = str(request.base_url).rstrip("/")
-        redirect_to = f"{base}/auth/callback"
+        redirect_to = str(request.url_for("oauth_callback"))
         resp = client.auth.sign_in_with_oauth(
             {"provider": provider, "options": {"redirect_to": redirect_to}}
         )
@@ -82,7 +81,7 @@ window.close();
 </html>"""
 
 
-@router.get("/callback", response_class=HTMLResponse)
+@router.get("/callback", response_class=HTMLResponse, name="oauth_callback")
 async def oauth_callback():
     return OAUTH_CALLBACK_HTML
 
