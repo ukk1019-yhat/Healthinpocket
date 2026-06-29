@@ -1,6 +1,9 @@
+import os
 import time
+import base64
 import tempfile
 from pathlib import Path
+import httpx
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from backend.app.schemas.diagnosis import DiagnosisResponse, DiagnosisResult
 from backend.app.utils.image import preprocess_image, IMG_SIZE
@@ -11,6 +14,43 @@ model = RetinopathyModel()
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".tiff", ".tif"}
 MAX_FILE_SIZE = 10 * 1024 * 1024
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "").strip()
+
+
+async def validate_retinal_image(image_bytes: bytes) -> tuple[bool, str]:
+    if not OPENROUTER_API_KEY:
+        return True, ""
+    b64 = base64.b64encode(image_bytes).decode()
+    data_url = f"data:image/jpeg;base64,{b64}"
+    prompt = "Is this a valid retinal fundus photo of the human eye? Answer with exactly one word: 'yes' or 'no'. If no, add a brief reason in 5 words or less."
+
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "google/gemini-2.0-flash-exp:free",
+                    "messages": [{
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {"type": "image_url", "image_url": {"url": data_url}},
+                        ],
+                    }],
+                },
+            )
+            data = resp.json()
+            answer = data["choices"][0]["message"]["content"].strip().lower()
+            if answer.startswith("no"):
+                reason = answer.replace("no", "", 1).strip().lstrip(",").strip() or "not a retinal image"
+                return False, reason
+            return True, ""
+    except Exception:
+        return True, ""
 
 
 @router.post("/diagnose", response_model=DiagnosisResponse)
@@ -26,6 +66,14 @@ async def diagnose(file: UploadFile = File(...)):
         raise HTTPException(
             status_code=413, detail="File too large (max 10MB)"
         )
+
+    is_valid, reason = await validate_retinal_image(contents)
+    if not is_valid:
+        raise HTTPException(
+            status_code=400,
+            detail=f"This doesn't appear to be a valid retinal image: {reason}. Please upload a clear photo of the retina.",
+        )
+
     start = time.perf_counter()
     with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
         tmp.write(contents)
