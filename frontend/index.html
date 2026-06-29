@@ -24,35 +24,35 @@
     <section class="tests">
       <h2>Choose a screening test</h2>
       <div class="test-grid" id="testGrid">
-        <div class="test-card active" data-test="retinopathy">
+        <div class="test-card" data-test="retinopathy">
           <div class="test-icon">👁️</div>
           <h3>Eye (Retina)</h3>
           <p>Diabetic retinopathy detection</p>
           <span class="badge active-badge">Active</span>
         </div>
-        <div class="test-card disabled" data-test="tb">
+        <div class="test-card" data-test="tb">
           <div class="test-icon">🗣️</div>
           <h3>Cough (TB)</h3>
           <p>TB detection from cough audio</p>
           <span class="badge soon-badge">Coming Soon</span>
         </div>
-        <div class="test-card disabled" data-test="chest">
+        <div class="test-card" data-test="chest">
           <div class="test-icon">🫁</div>
           <h3>Chest X-Ray</h3>
           <p>Pneumonia &amp; TB detection</p>
           <span class="badge soon-badge">Coming Soon</span>
         </div>
-        <div class="test-card disabled" data-test="ecg">
+        <div class="test-card" data-test="ecg">
           <div class="test-icon">❤️</div>
           <h3>ECG (Cardiac)</h3>
           <p>Cardiac risk flagging</p>
           <span class="badge soon-badge">Coming Soon</span>
         </div>
-        <div class="test-card disabled" data-test="skin">
+        <div class="test-card" data-test="skin">
           <div class="test-icon">🔬</div>
           <h3>Skin Lesions</h3>
           <p>Lesion classification</p>
-          <span class="badge soon-badge">Coming Soon</span>
+          <span class="badge active-badge">Active</span>
         </div>
       </div>
     </section>
@@ -62,7 +62,7 @@
       <div class="upload-zone" id="uploadZone">
         <div class="upload-content" id="uploadContent">
           <div class="upload-icon">📤</div>
-          <p>Drag &amp; drop a retinal image here, or <strong>click to browse</strong></p>
+          <p>Drag &amp; drop a <span id="uploadHint">retinal image</span> here, or <strong>click to browse</strong></p>
           <p class="upload-hint">JPG, PNG, or TIFF &middot; Max 10 MB</p>
         </div>
         <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.tiff,.tif" hidden>

@@ -1,6 +1,7 @@
 const API_BASE = "/api/v1";
 
 let selectedFile = null;
+let currentTest = "retinopathy";
 
 const testGrid = document.getElementById("testGrid");
 const uploadZone = document.getElementById("uploadZone");
@@ -17,6 +18,7 @@ const resultConfidence = document.getElementById("resultConfidence");
 const resultFilename = document.getElementById("resultFilename");
 const resultTime = document.getElementById("resultTime");
 const probBars = document.getElementById("probBars");
+const uploadHint = document.getElementById("uploadHint");
 const steps = {
   1: document.getElementById("step1"),
   2: document.getElementById("step2"),
@@ -24,12 +26,24 @@ const steps = {
   4: document.getElementById("step4"),
 };
 
+const TEST_HINTS = {
+  retinopathy: "a retinal image",
+  skin: "a skin lesion photo",
+};
+
 // --- Test selection ---
+document.querySelector(".test-card[data-test='retinopathy']").classList.add("active");
+
 testGrid.addEventListener("click", (e) => {
   const card = e.target.closest(".test-card");
   if (!card || card.classList.contains("disabled")) return;
+  if (card.dataset.test === currentTest) return;
   document.querySelectorAll(".test-card").forEach((c) => c.classList.remove("active"));
   card.classList.add("active");
+  currentTest = card.dataset.test;
+  uploadHint.textContent = TEST_HINTS[currentTest] || "a medical image";
+  resultsSection.classList.add("hidden");
+  changeBtn.click();
   document.getElementById("uploadSection").scrollIntoView({ behavior: "smooth" });
 });
 
@@ -66,6 +80,7 @@ async function runDiagnosis() {
 
   const formData = new FormData();
   formData.append("file", selectedFile);
+  formData.append("test_type", currentTest);
 
   try {
     const resp = await fetch(`${API_BASE}/diagnose`, { method: "POST", body: formData });
@@ -95,8 +110,9 @@ function showResults(data) {
   resultTime.textContent = (data.processing_time_ms / 1000).toFixed(2) + "s";
 
   const card = document.getElementById("resultCard");
-  card.style.borderLeftColor = p.class_id === 0 ? "var(--green)" : p.class_id <= 2 ? "var(--accent)" : "var(--red)";
-  resultConfidence.style.color = p.class_id === 0 ? "var(--green)" : p.class_id <= 2 ? "var(--accent)" : "var(--red)";
+  const isHealthy = data.test_type === "retinopathy" ? p.class_id === 0 : p.class_id === 5 || p.class_id === 6 || p.class_id === 0;
+  card.style.borderLeftColor = isHealthy ? "var(--green)" : p.confidence > 0.7 ? "var(--red)" : "var(--accent)";
+  resultConfidence.style.color = isHealthy ? "var(--green)" : p.confidence > 0.7 ? "var(--red)" : "var(--accent)";
 
   probBars.innerHTML = "";
   data.predictions.forEach((pred, i) => {
@@ -112,10 +128,10 @@ function showResults(data) {
   resultsSection.classList.remove("hidden");
   resultsSection.scrollIntoView({ behavior: "smooth" });
 
-  fetchExplanation(data.predictions, data.primary_diagnosis);
+  fetchExplanation(data);
 }
 
-async function fetchExplanation(predictions, primaryDiagnosis) {
+async function fetchExplanation(data) {
   const section = document.getElementById("aiExplanation");
   const loading = document.getElementById("explanationLoading");
   const content = document.getElementById("explanationContent");
@@ -128,11 +144,11 @@ async function fetchExplanation(predictions, primaryDiagnosis) {
     const resp = await fetch(`${API_BASE}/explain`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ predictions, primary_diagnosis: primaryDiagnosis }),
+      body: JSON.stringify({ test_type: data.test_type, predictions: data.predictions, primary_diagnosis: data.primary_diagnosis }),
     });
     if (!resp.ok) throw new Error("AI explanation unavailable");
-    const data = await resp.json();
-    content.innerHTML = data.explanation.replace(/\*\*/g, "").replace(/\*/g, "").replace(/\n/g, "<br>");
+    const result = await resp.json();
+    content.innerHTML = result.explanation.replace(/\*\*/g, "").replace(/\*/g, "").replace(/\n/g, "<br>");
     loading.classList.add("hidden");
     content.classList.remove("hidden");
   } catch {

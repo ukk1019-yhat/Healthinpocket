@@ -14,6 +14,7 @@ class DiagnosisResult(BaseModel):
 
 class DiagnosisResponse(BaseModel):
     filename: str
+    test_type: str
     predictions: List[DiagnosisResult]
     primary_diagnosis: DiagnosisResult
     processing_time_ms: float
