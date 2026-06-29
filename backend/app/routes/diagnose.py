@@ -33,7 +33,7 @@ async def validate_retinal_image(image_bytes: bytes) -> tuple[bool, str]:
                     "Content-Type": "application/json",
                 },
                 json={
-                    "model": "google/gemini-2.0-flash-exp:free",
+                    "model": "nvidia/nemotron-nano-12b-v2-vl:free",
                     "messages": [{
                         "role": "user",
                         "content": [
@@ -44,13 +44,15 @@ async def validate_retinal_image(image_bytes: bytes) -> tuple[bool, str]:
                 },
             )
             data = resp.json()
+            if "error" in data:
+                return False, "image validation unavailable"
             answer = data["choices"][0]["message"]["content"].strip().lower()
             if answer.startswith("no"):
                 reason = answer.replace("no", "", 1).strip().lstrip(",").strip() or "not a retinal image"
                 return False, reason
             return True, ""
     except Exception:
-        return True, ""
+        return False, "could not validate image"
 
 
 @router.post("/diagnose", response_model=DiagnosisResponse)
@@ -86,6 +88,14 @@ async def diagnose(file: UploadFile = File(...)):
     finally:
         Path(tmp_path).unlink(missing_ok=True)
     elapsed = (time.perf_counter() - start) * 1000
+
+    # Confidence sanity check: if top prediction is very low, image may not be a valid retina
+    top_conf = result["primary_diagnosis"]["confidence"]
+    if top_conf < 0.25:
+        raise HTTPException(
+            status_code=400,
+            detail="The model is uncertain about this image (low confidence across all classes). Please upload a clear retinal fundus photo.",
+        )
 
     response = DiagnosisResponse(
         filename=file.filename,
